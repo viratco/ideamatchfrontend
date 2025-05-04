@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import axios from '../utils/axios-wrapper';
+// Removed axios import to use Fetch API instead
 import { ScrollArea } from '../components/ui/scroll-area';
 import { Separator } from '../components/ui/separator';
 import { Button } from '../components/ui/button';
@@ -789,8 +789,6 @@ const response = await fetch('http://localhost:3001/api/business-plan/generate',
     }
   }, [ideaData]);
 
-
-
 const fetchGrowthProjections = useCallback(async () => {
     if (!ideaData?.title || !ideaData?.ideaFitness) return;
     
@@ -1430,14 +1428,25 @@ const fetchGrowthProjections = useCallback(async () => {
     const fetchSwotAnalysis = async () => {
     try {
       setSwotLoading(true);
-      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/business-plan/swot-analysis`, {
-        title: ideaData?.title,
-        ideaFitness: ideaData?.ideaFitness
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/swot-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: ideaData?.title,
+          ideaFitness: ideaData?.ideaFitness
+        })
       });
-      setSwotAnalysis(response.data);
+      const data = await response.json();
+      if (response.ok) {
+        setSwotAnalysis(data);
+      } else {
+        toast.error('Failed to load SWOT analysis', { description: data.error });
+      }
     } catch (error) {
-      console.error('Error fetching SWOT analysis:', error);
-      toast.error('Failed to generate SWOT analysis');
+      toast.error('Failed to load SWOT analysis');
+      console.error(error);
     } finally {
       setSwotLoading(false);
     }
