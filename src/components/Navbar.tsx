@@ -3,15 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';
 import { Link, useNavigate } from 'react-router-dom';
 import { BrainCircuit, Menu, X, User, Settings, LogOut, Home, Lightbulb, BookOpen, BarChart3, FileText, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { Button } from '/components/ui/button';
+import { ThemeToggle } from '/components/theme-toggle';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  DropdownMenuSeparator,
+} from '/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 
 const Navbar: React.FC = () => {
