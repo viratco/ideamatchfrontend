@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      external: ['axios'],
+      // external: ['axios'], // Removed to ensure axios is bundled
     },
   },
   plugins: [
