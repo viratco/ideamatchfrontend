@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      'axios': '/Users/viratvaroniya31/Desktop/ideafullfinal 2/idea/frontend/node_modules/axios',
+      'axios': path.resolve(__dirname, './node_modules/axios'),
     },
   },
 }));
