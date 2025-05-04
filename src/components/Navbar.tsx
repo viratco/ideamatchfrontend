@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 // @ts-ignore
 import anime from 'animejs';
@@ -106,7 +105,7 @@ const Navbar: React.FC = () => {
               
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="rounded-full w-10 h-10 p-0">
+                  <Button variant="outline" className="rounded-full border-primary text-primary hover:bg-primary hover:text-white transition-colors duration-300 ease-in-out transform hover:scale-105 cursor-pointer px-6 py-2 text-lg font-semibold tracking-wider uppercase">
                     <User className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
@@ -123,9 +122,11 @@ const Navbar: React.FC = () => {
 
 
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive">
-                    <LogOut className="h-4 w-4" />
-                    <span>Logout</span>
+                  <DropdownMenuItem asChild>
+                    <Button variant="ghost" onClick={handleLogout} className="rounded-full text-white hover:bg-white/20 transition-colors duration-300 ease-in-out transform hover:scale-105 cursor-pointer px-6 py-2 text-lg font-semibold tracking-wider uppercase">
+                      <LogOut className="h-4 w-4" />
+                      <span>Logout</span>
+                    </Button>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -135,7 +136,7 @@ const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
             <ThemeToggle />
-            <Button variant="ghost" onClick={() => setIsOpen(!isOpen)} className="p-2">
+            <Button variant="outline" onClick={() => setIsOpen(!isOpen)} className="p-2">
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
@@ -164,16 +165,13 @@ const Navbar: React.FC = () => {
                 <User className="h-5 w-5" />
                 <span>Profile</span>
               </Link>
-              <button 
-                onClick={() => {
-                  handleLogout();
-                  setIsOpen(false);
-                }}
-                className="flex items-center gap-2 py-2 text-destructive"
-              >
+              <Button variant="ghost" onClick={() => {
+                handleLogout();
+                setIsOpen(false);
+              }} className="flex items-center gap-2 py-2 text-destructive">
                 <LogOut className="h-5 w-5" />
                 <span>Logout</span>
-              </button>
+              </Button>
             </div>
           </div>
         )}
