@@ -12,6 +12,11 @@ export default defineConfig(({ mode }) => ({
       '/api': 'http://localhost:3001',
     },
   },
+  build: {
+    rollupOptions: {
+      external: ['axios'],
+    },
+  },
   plugins: [
     react(),
     mode === 'development' &&
