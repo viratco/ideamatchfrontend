@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import { BrainCircuit } from 'lucide-react';
@@ -9,26 +10,26 @@ import { toast } from 'sonner';
 const SignUp: React.FC = () => {
   const navigate = useNavigate();
   
-  const handleSignUp = async (data: { email: string; password: string; name?: string }) => {
-    try {
-      const res = await fetch('/api/user/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      if (res.ok) {
-        toast.success(result.message || 'Account created! Please check your email to verify your account.');
-        // Do NOT redirect to dashboard here. User should verify email first.
-      } else if (res.status === 409) {
-        toast.error('Email already in use.');
-      } else {
-        toast.error(result.error || result.message || 'Signup failed.');
-      }
-    } catch (err) {
-      toast.error('Network/server error.');
+
+const handleSignUp = async (data: { email: string; password: string; name?: string }) => {
+  try {
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: { data: { name: data.name } }
+    });
+    if (!error) {
+      toast.success('Account created! Please check your email to verify your account.');
+      // Do NOT redirect to dashboard here. User should verify email first.
+    } else if (error.message.includes('already registered')) {
+      toast.error('Email already in use.');
+    } else {
+      toast.error(error.message || 'Signup failed.');
     }
-  };
+  } catch (err) {
+    toast.error('Network/server error.');
+  }
+};
   
   return (
     <div className="min-h-screen flex flex-col justify-center items-center p-4 bg-gradient-to-b from-background to-secondary/30">

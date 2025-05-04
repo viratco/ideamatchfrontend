@@ -59,6 +59,19 @@ interface IdeaType {
   initialInvestment: string;
   ideaFitness?: string;
   analysis?: DetailedAnalysis;
+  mvpFeatures?: Array<{ name: string; description: string }>;
+  differentiation?: Array<{ point: string; description: string }>;
+  revenueModel?: {
+    primary: string;
+    secondary: string;
+  };
+  scalabilityPlan?: Array<{ phase: string }>;
+  deepInsights?: {
+    marketDemand: string;
+    technologicalFeasibility: string;
+    customerRetention: string;
+    growthStrategy: string;
+  };
 }
 
 // Parse the AI response into structured data
@@ -154,13 +167,50 @@ interface IdeaDetailsProps {
   onOpenChange: (open: boolean) => void;
 }
 
+import { useState } from 'react';
+import { supabase } from '../supabaseClient';
+import { saveIdeaToSupabase } from '../utils/saveIdeaToSupabase';
+
 export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsProps) {
   if (!idea) return null;
   const navigate = useNavigate();
 
+  const [saved, setSaved] = useState(false);
   const handleGenerateBusinessPlan = () => {
     navigate('/business-plan-waiting', { state: { idea } });
   };
+
+  const handleSaveIdea = async () => {
+    // Compose the details object with all fields
+    const details = {
+      marketPotential: idea.marketPotential,
+      competitionLevel: idea.competitionLevel,
+      skills: idea.skills,
+      industry: idea.industry,
+      businessModel: idea.businessModel,
+      initialInvestment: idea.initialInvestment,
+      ...(idea.analysis ? { analysis: idea.analysis } : {})
+    };
+    // Get user_id from Supabase session
+    const { data: { session } } = await supabase.auth.getSession();
+    const user_id = session?.user?.id;
+    if (!user_id) {
+      toast.error('You must be logged in to save ideas.');
+      return;
+    }
+    // Save to Supabase
+    const error = await saveIdeaToSupabase({
+      user_id,
+      idea: { title: idea.title, description: idea.description, details }
+    });
+    if (!error) {
+      setSaved(true);
+      toast.success('Idea saved to your account!');
+    } else {
+      toast.error('Failed to save idea: ' + (error.message || error.details || JSON.stringify(error)));
+    }
+  };
+
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -203,7 +253,7 @@ export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsPro
                 <span>MVP Features</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {idea.analysis?.mvpFeatures.map((feature, index) => (
+                {(idea.mvpFeatures || idea.analysis?.mvpFeatures || []).map((feature, index) => (
                   <div key={index} className="bg-secondary/20 p-5 rounded-xl flex gap-3">
                     <div className="bg-green-100 rounded-full h-6 w-6 flex items-center justify-center mt-0.5">
                       <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -225,7 +275,7 @@ export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsPro
                 <span>Differentiation</span>
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {idea.analysis?.differentiation.map((diff, index) => (
+                {(idea.differentiation || idea.analysis?.differentiation || []).map((diff, index) => (
                   <div key={index} className="bg-primary/10 p-5 rounded-xl">
                     <h4 className="font-medium mb-2">{diff.point}</h4>
                     <p className="text-sm text-muted-foreground">{diff.description}</p>
@@ -242,11 +292,11 @@ export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsPro
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="glass-section p-5 rounded-xl">
                   <h4 className="font-medium">Primary Revenue Stream</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{idea.analysis?.revenueModel.primary}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{(idea.revenueModel?.primary || idea.analysis?.revenueModel?.primary || 'Analysis not available.') }</p>
                 </div>
                 <div className="glass-section p-5 rounded-xl">
                   <h4 className="font-medium">Secondary Revenue Stream</h4>
-                  <p className="text-sm text-muted-foreground mt-1">{idea.analysis?.revenueModel.secondary}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{(idea.revenueModel?.secondary || idea.analysis?.revenueModel?.secondary || 'Analysis not available.') }</p>
                 </div>
               </div>
             </section>
@@ -259,7 +309,7 @@ export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsPro
                 <span>Scalability</span>
               </h3>
               <div className="space-y-4">
-                {idea.analysis?.scalabilityPlan.map((plan, index) => (
+                {(idea.scalabilityPlan || idea.analysis?.scalabilityPlan || []).map((plan, index) => (
                   <div key={index} className="flex gap-3 p-2">
                     <div className="bg-blue-100 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
                       <span className="font-semibold text-blue-600">{index + 1}</span>
@@ -282,31 +332,34 @@ export default function IdeaDetails({ idea, open, onOpenChange }: IdeaDetailsPro
                 <div className="glass-section rounded-lg p-4">
                   <h4 className="font-medium text-primary">Market Demand</h4>
                   <p className="text-muted-foreground mt-2">
-                    {idea.analysis?.deepInsights.marketDemand || 'Analysis not available.'}
+                    {(idea.deepInsights?.marketDemand || idea.analysis?.deepInsights?.marketDemand || 'Analysis not available.')}
                   </p>
                 </div>
                 <div className="glass-section rounded-lg p-4">
                   <h4 className="font-medium text-primary">Technological Feasibility</h4>
                   <p className="text-muted-foreground mt-2">
-                    {idea.analysis?.deepInsights.technologicalFeasibility || 'Analysis not available.'}
+                    {(idea.deepInsights?.technologicalFeasibility || idea.analysis?.deepInsights?.technologicalFeasibility || 'Analysis not available.')}
                   </p>
                 </div>
                 <div className="glass-section rounded-lg p-4">
                   <h4 className="font-medium text-primary">Customer Retention</h4>
                   <p className="text-muted-foreground mt-2">
-                    {idea.analysis?.deepInsights.customerRetention || 'Analysis not available.'}
+                    {(idea.deepInsights?.customerRetention || idea.analysis?.deepInsights?.customerRetention || 'Analysis not available.')}
                   </p>
                 </div>
                 <div className="glass-section rounded-lg p-4">
                   <h4 className="font-medium text-primary">Growth Strategy</h4>
                   <p className="text-muted-foreground mt-2">
-                    {idea.analysis?.deepInsights.growthStrategy || 'Analysis not available.'}
+                    {(idea.deepInsights?.growthStrategy || idea.analysis?.deepInsights?.growthStrategy || 'Analysis not available.')}
                   </p>
                 </div>
               </div>
             </section>
             
-            <div className="pt-4">
+            <div className="flex flex-col gap-2 pt-4">
+              <Button onClick={handleSaveIdea} className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-base" disabled={saved}>
+                {saved ? 'Saved!' : 'Save Idea'}
+              </Button>
               <Button onClick={handleGenerateBusinessPlan} className="w-full bg-primary/90 hover:bg-primary text-white py-6 text-lg">
                 Generate Complete Business Plan
                 <ChevronRight className="ml-2 h-5 w-5" />

@@ -16,12 +16,14 @@ const BusinessPlanWaitingPage = () => {
     }
     const generatePlan = async () => {
       try {
-        const token = localStorage.getItem('token');
+        // Always use the latest Supabase JWT for backend requests
+        const { data: { session } } = await import('../supabaseClient').then(mod => mod.supabase.auth.getSession());
+        const accessToken = session?.access_token;
         const res = await fetch('/api/business-plan/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+            ...(accessToken ? { 'Authorization': `Bearer ${accessToken}` } : {})
           },
           body: JSON.stringify({ title: idea.title, ideaFitness: idea.ideaFitness })
         });

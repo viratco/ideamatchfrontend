@@ -41,6 +41,7 @@ import ExecutiveSummaryMetrics from '../components/ExecutiveSummaryMetrics';
 import { useLocation } from 'react-router-dom';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '../supabaseClient';
 
 interface IdeaData {
   title: string;
@@ -272,8 +273,6 @@ const [problemOpportunityLoading, setProblemOpportunityLoading] = useState(false
     targetSegment: number;
     ourShare: number;
   }>>([]);
-  const [customerValidationLoading, setCustomerValidationLoading] = useState(false);
-  const [customerValidationText, setCustomerValidationText] = useState('');
   const [productOfferingLoading, setProductOfferingLoading] = useState(false);
   const [productFeatures, setProductFeatures] = useState<Array<{
     title: string;
@@ -314,7 +313,10 @@ const [problemOpportunityLoading, setProblemOpportunityLoading] = useState(false
   toast.error('Request timed out. The backend is taking longer than expected.');
 }, 120000);
 
-      const token = localStorage.getItem('token');
+      // Fetch fresh token
+      const sessionData = await supabase.auth.getSession();
+      const token = sessionData?.data.session?.access_token;
+
       const response = await fetch('http://localhost:3001/api/business-plan/problem-opportunity', {
         method: 'POST',
         headers: {
@@ -365,7 +367,10 @@ const [problemOpportunityLoading, setProblemOpportunityLoading] = useState(false
   toast.error('Request timed out. The backend is taking longer than expected.');
 }, 120000);
 
-      const token = localStorage.getItem('token');
+      // Fetch fresh token
+      const sessionData = await supabase.auth.getSession();
+      const token = sessionData?.data.session?.access_token;
+
 const response = await fetch('http://localhost:3001/api/business-plan/generate', {
         method: 'POST',
         headers: {
@@ -518,91 +523,6 @@ const response = await fetch('http://localhost:3001/api/business-plan/generate',
       setProductOfferingLoading(false);
     }
   }, [ideaData]);
-
-  const generateCustomerValidation = useCallback(async () => {
-  if (!ideaData?.title || !ideaData?.ideaFitness) {
-    toast.error('Idea title and fitness assessment are required');
-    return;
-  }
-  setCustomerValidationText(''); // Clear old data before fetching new
-  setCustomerValidationLoading(true);
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-  controller.abort();
-  toast.error('Request timed out. The backend is taking longer than expected.');
-}, 120000);
-
-    const apiUrl = import.meta.env.VITE_API_URL || '';
-    const url = `${apiUrl}/api/business-plan/customer-validation`;
-
-    let response;
-    try {
-      response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          title: ideaData.title,
-          ideaFitness: ideaData.ideaFitness
-        }),
-        signal: controller.signal
-      });
-    } catch (fetchError) {
-      clearTimeout(timeoutId);
-      console.error('Network error during customer validation fetch:', fetchError);
-      toast.error('Network error: Unable to reach customer validation API');
-      setCustomerValidationLoading(false);
-      return;
-    }
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      let errorData = {};
-      try {
-        errorData = await response.json();
-      } catch (parseError) {
-        console.error('Failed to parse error response:', parseError);
-      }
-      console.error('API returned error for customer validation:', errorData);
-      toast.error(
-  typeof errorData === 'object' && errorData !== null && 'message' in errorData && typeof (errorData as any).message === 'string'
-    ? (errorData as any).message
-    : `Failed to generate customer validation (status ${response.status})`
-);
-      setCustomerValidationLoading(false);
-      return;
-    }
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('Failed to parse customer validation response:', jsonError);
-      toast.error('Invalid JSON response from customer validation API');
-      setCustomerValidationLoading(false);
-      return;
-    }
-    console.log('Customer validation API response:', data);
-
-    if (!data.validationText || typeof data.validationText !== 'string') {
-      console.error('Invalid customer validation format:', data);
-      toast.error('Invalid customer validation format received from API');
-      setCustomerValidationLoading(false);
-      return;
-    }
-
-    setCustomerValidationText(data.validationText);
-    toast.success('Customer validation generated successfully!');
-  } catch (error: any) {
-    console.error('Unexpected error generating customer validation:', error);
-    toast.error(error.message || 'Failed to generate customer validation');
-  } finally {
-    setCustomerValidationLoading(false);
-  }
-}, [ideaData]);
 
   const generateMarketSize = useCallback(async () => {
     if (!ideaData?.title || !ideaData?.ideaFitness) {
@@ -973,8 +893,11 @@ const fetchGrowthProjections = useCallback(async () => {
       if (!roadmapLoading && !roadmapData) {
         setRoadmapLoading(true);
         try {
-          const token = localStorage.getItem('token');
-const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/strategic-roadmap`, {
+          // Fetch fresh token
+          const sessionData = await supabase.auth.getSession();
+          const token = sessionData?.data.session?.access_token;
+
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/strategic-roadmap`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1010,8 +933,11 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!challengesLoading && challenges.length === 0) {
             setChallengesLoading(true);
             try {
-              const token = localStorage.getItem('token');
-const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/challenges`, {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
+              const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/challenges`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -1048,8 +974,11 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!solutionDetailsLoading && sellingPoints.length === 0) {
             setSolutionDetailsLoading(true);
             try {
-              const token = localStorage.getItem('token');
-const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/solution-details`, {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
+              const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/solution-details`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
@@ -1087,10 +1016,15 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!marketSizeLoading && marketSizeData.length === 0) {
             setMarketSizeLoading(true);
             try {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
               const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/market-size`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                   title: ideaData.title,
@@ -1118,49 +1052,19 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
             }
           }
           break;
-        case 'customer-validation':
-          if (!customerValidationLoading && !customerValidationText) {
-            setCustomerValidationLoading(true);
-            try {
-              const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/customer-validation`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  title: ideaData.title,
-                  ideaFitness: ideaData.ideaFitness
-                })
-              });
-
-              if (!response.ok) {
-                throw new Error('Failed to fetch customer validation');
-              }
-
-              const data = await response.json();
-              if (!data.validationText || typeof data.validationText !== 'string') {
-                throw new Error('Invalid customer validation format');
-              }
-
-              setCustomerValidationText(data.validationText);
-              setGeneratedSections(prev => new Set([...prev, section]));
-            } catch (error) {
-              console.error('Error fetching customer validation:', error);
-              toast.error('Failed to load customer validation');
-              setFailedSections(prev => new Set([...prev, section]));
-            } finally {
-              setCustomerValidationLoading(false);
-            }
-          }
-          break;
         case 'product-offering':
           if (!productOfferingLoading && productFeatures.length === 0) {
             setProductOfferingLoading(true);
             try {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
               const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/product-offering`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                   title: ideaData.title,
@@ -1192,10 +1096,15 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!subscriptionPlansLoading && subscriptionPlans.length === 0) {
             setSubscriptionPlansLoading(true);
             try {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
               const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/subscription-plans`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                   title: ideaData.title,
@@ -1227,10 +1136,15 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!customerSegmentsLoading && !customerSegments) {
             setCustomerSegmentsLoading(true);
             try {
+              // Fetch fresh token
+              const sessionData = await supabase.auth.getSession();
+              const token = sessionData?.data.session?.access_token;
+
               const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/customer-segments`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
+                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                   title: ideaData.title,
@@ -1262,12 +1176,10 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
           if (!growthProjectionsLoading && growthData.length === 0) {
             setGrowthProjectionsLoading(true);
             try {
-              const token = localStorage.getItem('token');
-const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/growth-projections`, {
+              const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/growth-projections`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
                 body: JSON.stringify({
                   title: ideaData.title,
@@ -1456,7 +1368,6 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
       'challenges',
       'solution-details',
       'market-size',
-      'customer-validation',
       'product-offering',
       'subscription-plans',
       'customer-segments',
@@ -1612,7 +1523,6 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
       generateIntroduction();
       generateProblemOpportunity();
       generateMarketSize();
-      generateCustomerValidation();
       generateProductOffering();
       generateSolutionDetails();
       generateSubscriptionPlans();
@@ -1628,7 +1538,6 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
     generateIntroduction,
     generateProblemOpportunity,
     generateMarketSize,
-    generateCustomerValidation,
     generateProductOffering,
     generateSolutionDetails,
     generateSubscriptionPlans,
@@ -1862,19 +1771,7 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
               <MarketSizeChart className="mt-8" data={marketSizeData} loading={marketSizeLoading} />
               
               <div className="bg-secondary/30 p-6 rounded-lg mt-8">
-                <h3 className="font-semibold mb-3">Customer Validation</h3>
-                {customerValidationLoading ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="flex items-center gap-3">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span className="text-muted-foreground">Generating customer validation...</span>
-                    </div>
-                  </div>
-                ) : customerValidationText ? (
-                  <p className="text-muted-foreground mb-4">{customerValidationText}</p>
-                ) : (
-                  <p className="text-muted-foreground mb-4">Customer validation will be generated soon...</p>
-                )}
+                
               </div>
             </section>
             
@@ -2268,7 +2165,7 @@ const response = await fetch(`${import.meta.env.VITE_API_URL}/api/business-plan/
                               ) : index === 1 ? (
                                 <Lightbulb className="h-4 w-4 text-primary" />
                               ) : (
-                                <Target className="h-4 w-4 text-primary" />
+                                <Circle className="h-4 w-4 text-primary" />
                               )}
                             </div>
                             <div>

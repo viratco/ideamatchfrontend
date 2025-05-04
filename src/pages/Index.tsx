@@ -977,7 +977,7 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Pricing Section */}
+      {/* Pricing Section (commented out for now)
       <section id="pricing" className="relative z-10 py-20 px-4 sm:px-6 container mx-auto">
         <div className="text-center mb-12">
           <motion.h2 
@@ -988,8 +988,6 @@ const Index = () => {
             className="text-3xl font-bold mb-4"
           >
             <span className="relative">
-              Simple, Transparent Pricing
-              <span className="absolute -bottom-1 left-0 right-0 h-1 bg-primary/40 rounded-full"></span>
             </span>
           </motion.h2>
           <motion.p 
@@ -1048,6 +1046,7 @@ const Index = () => {
           <p>All plans include a 14-day money-back guarantee</p>
         </div>
       </section>
+      */}
 
       {/* FAQ Section */}
       <section id="faq" className="relative z-10 py-20 px-4 sm:px-6 bg-secondary/30 dark:bg-gray-800/30 rounded-3xl">

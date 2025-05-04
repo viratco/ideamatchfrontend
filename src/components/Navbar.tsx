@@ -119,24 +119,9 @@ const Navbar: React.FC = () => {
                       <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/analytics" className="flex items-center gap-2 cursor-pointer">
-                      <BarChart3 className="h-4 w-4" />
-                      <span>Analytics</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/documents" className="flex items-center gap-2 cursor-pointer">
-                      <FileText className="h-4 w-4" />
-                      <span>Documents</span>
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link to="/billing" className="flex items-center gap-2 cursor-pointer">
-                      <CreditCard className="h-4 w-4" />
-                      <span>Billing</span>
-                    </Link>
-                  </DropdownMenuItem>
+
+
+
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive">
                     <LogOut className="h-4 w-4" />
@@ -172,18 +157,9 @@ const Navbar: React.FC = () => {
                 <BookOpen className="h-5 w-5" />
                 <span>Saved Ideas</span>
               </Link>
-              <Link to="/analytics" className="flex items-center gap-2 py-2 hover:text-primary" onClick={() => setIsOpen(false)}>
-                <BarChart3 className="h-5 w-5" />
-                <span>Analytics</span>
-              </Link>
-              <Link to="/documents" className="flex items-center gap-2 py-2 hover:text-primary" onClick={() => setIsOpen(false)}>
-                <FileText className="h-5 w-5" />
-                <span>Documents</span>
-              </Link>
-              <Link to="/billing" className="flex items-center gap-2 py-2 hover:text-primary" onClick={() => setIsOpen(false)}>
-                <CreditCard className="h-5 w-5" />
-                <span>Billing</span>
-              </Link>
+
+
+
               <Link to="/profile" className="flex items-center gap-2 py-2 hover:text-primary" onClick={() => setIsOpen(false)}>
                 <User className="h-5 w-5" />
                 <span>Profile</span>

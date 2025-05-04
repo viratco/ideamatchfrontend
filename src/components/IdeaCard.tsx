@@ -24,7 +24,9 @@ interface IdeaProps {
   showSaveButton?: boolean;
 }
 
-import axios from 'axios';
+import { toast } from 'sonner';
+import { supabase } from '../supabaseClient';
+import { saveIdeaToSupabase } from '../utils/saveIdeaToSupabase';
 
 const IdeaCard: React.FC<IdeaProps> = ({
   title,
@@ -41,75 +43,42 @@ const IdeaCard: React.FC<IdeaProps> = ({
 }) => {
   const [saved, setSaved] = React.useState(false);
 
-  React.useEffect(() => {
-    // Check if this idea is already saved (by title for simplicity)
-    const savedIdeas = JSON.parse(localStorage.getItem('savedIdeas') || '[]');
-    if (savedIdeas.some((idea: any) => idea.title === title)) {
-      setSaved(true);
-    }
-  }, [title]);
   const cardRef = useRef<HTMLDivElement>(null);
   const exploreBtnRef = useRef<HTMLButtonElement>(null);
 
   const handleSaveIdea = async () => {
-    try {
-      // Compose the details object with all idea components
-      const details = {
-        marketPotential,
-        competitionLevel,
-        skills,
-        industry,
-        businessModel,
-        initialInvestment,
-        ...(analysis ? { analysis } : {}) // include analysis if provided
-      };
-
-      // Save to backend
-      const token = localStorage.getItem('token');
-      let userId = null;
-      try {
-        const tokenValue = token;
-        if (tokenValue) {
-          const payload = JSON.parse(atob(tokenValue.split('.')[1]));
-          userId = payload.user_id || payload.id || payload.sub || null;
-        }
-      } catch {}
-
-      await axios.post('/api/ideas/save', {
-        title,
-        description,
-        details
-      }, {
-        headers: {
-          Authorization: token ? `Bearer ${token}` : ''
-        }
-      });
-
-      // Save to localStorage to prevent duplicate saves
-      const savedIdeas = JSON.parse(localStorage.getItem('savedIdeas') || '[]');
-      if (!savedIdeas.some((idea: any) => idea.title === title)) {
-        savedIdeas.push({ title, description, details });
-        localStorage.setItem('savedIdeas', JSON.stringify(savedIdeas));
-      }
-      setSaved(true);
-    } catch (err: any) {
-      if (err.response) {
-        if (err.response.status === 401) {
-          alert('You must be logged in to save ideas. Please log in again.');
-        } else if (err.response.status === 500) {
-          alert('Server error while saving idea. Please try again later.');
-        } else if (err.response.data && err.response.data.message) {
-          alert('Error: ' + err.response.data.message);
-        } else {
-          alert('Failed to save idea. Unexpected error.');
-        }
-        console.error('Save idea error:', err.response);
-      } else {
-        alert('Failed to save idea. Network or unknown error.');
-        console.error('Save idea error:', err);
-      }
-    }
+  // Compose the details object with all idea components (including analysis)
+  const details = {
+    title,
+    description,
+    marketPotential,
+    competitionLevel,
+    skills,
+    industry,
+    businessModel,
+    initialInvestment,
+    ...(analysis || {}) // flatten all analysis fields at top level
   };
+
+  // Get user_id from Supabase session
+  const { data: { session } } = await supabase.auth.getSession();
+  const user_id = session?.user?.id;
+  if (!user_id) {
+    toast.error('You must be logged in to save ideas.');
+    return;
+  }
+  // Save to Supabase
+  const error = await saveIdeaToSupabase({
+    user_id,
+    idea: { title, description, details }
+  });
+  if (!error) {
+    setSaved(true);
+    toast.success('Idea saved to your account!');
+  } else {
+    toast.error('Failed to save idea: ' + (error.message || error.details || JSON.stringify(error)));
+  }
+};
 
   useEffect(() => {
     if (cardRef.current) {
