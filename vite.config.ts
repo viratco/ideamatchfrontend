@@ -14,8 +14,9 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
-      // external: ['axios'], // Removed to ensure axios is bundled
-    },
+      // Ensure Supabase is bundled and not externalized
+      external: []
+    }
   },
   plugins: [
     react(),
