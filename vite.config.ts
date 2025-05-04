@@ -24,8 +24,7 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
-      'axios': path.resolve(__dirname, './node_modules/axios'),
+      '@': path.resolve(__dirname, './src'),
     },
   },
 }));
