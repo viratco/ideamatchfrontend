@@ -15,7 +15,12 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       // Ensure Supabase is bundled and not externalized
-      external: []
+      external: [],
+      output: {
+        manualChunks: {
+          supabase: ['@supabase/supabase-js']
+        }
+      }
     }
   },
   plugins: [
